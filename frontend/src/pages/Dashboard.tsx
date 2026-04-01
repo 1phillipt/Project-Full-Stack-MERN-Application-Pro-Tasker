@@ -10,8 +10,7 @@ type Project = {
 };
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
-
+const { user } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -71,8 +70,6 @@ const Dashboard = () => {
       <h1>Dashboard</h1>
 
       <p>Welcome, {user?.username}</p>
-
-      <button onClick={logout}>Logout</button>
 
       <h2>Create Project</h2>
 
