@@ -78,11 +78,40 @@ const ProjectDetails = () => {
     }
   };
 
+  const handleStatusChange = async (
+    taskId: string,
+    newStatus: "To Do" | "In Progress" | "Done"
+  ) => {
+    try {
+      const response = await api.put(`/api/tasks/${taskId}`, {
+        status: newStatus,
+      });
+
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task._id === taskId ? response.data : task
+        )
+      );
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to update task status");
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      await api.delete(`/api/tasks/${taskId}`);
+
+      setTasks((prevTasks) => prevTasks.filter((task) => task._id !== taskId));
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to delete task");
+    }
+  };
+
   if (loading) {
     return <p>Loading project...</p>;
   }
 
-  if (error) {
+  if (error && !project) {
     return (
       <div>
         <p>{error}</p>
@@ -97,6 +126,8 @@ const ProjectDetails = () => {
 
       <h1>{project?.name}</h1>
       <p>{project?.description}</p>
+
+      {error && <p>{error}</p>}
 
       <h2>Create Task</h2>
 
@@ -135,7 +166,27 @@ const ProjectDetails = () => {
           <div key={task._id}>
             <h3>{task.title}</h3>
             <p>{task.description}</p>
-            <p>Status: {task.status}</p>
+
+            <label>Status: </label>
+            <select
+              value={task.status}
+              onChange={(e) =>
+                handleStatusChange(
+                  task._id,
+                  e.target.value as "To Do" | "In Progress" | "Done"
+                )
+              }
+            >
+              <option value="To Do">To Do</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Done">Done</option>
+            </select>
+
+            <div>
+              <button onClick={() => handleDeleteTask(task._id)}>
+                Delete Task
+              </button>
+            </div>
           </div>
         ))
       )}
