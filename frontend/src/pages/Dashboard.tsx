@@ -15,6 +15,12 @@ const Dashboard = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+  });
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -31,6 +37,31 @@ const Dashboard = () => {
     fetchProjects();
   }, []);
 
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleCreateProject = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setCreating(true);
+
+    try {
+      const response = await api.post("/api/projects", formData);
+      setProjects((prevProjects) => [response.data, ...prevProjects]);
+      setFormData({ name: "", description: "" });
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to create project");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   if (loading) {
     return <p>Loading projects...</p>;
   }
@@ -43,13 +74,43 @@ const Dashboard = () => {
 
       <button onClick={logout}>Logout</button>
 
+      <h2>Create Project</h2>
+
+      <form onSubmit={handleCreateProject}>
+        <div>
+          <label>Project Name</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div>
+          <label>Description</label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+          />
+        </div>
+
+        <button type="submit" disabled={creating}>
+          {creating ? "Creating..." : "Create Project"}
+        </button>
+      </form>
+
       {error && <p>{error}</p>}
+
+      <h2>Your Projects</h2>
 
       {!error && projects.length === 0 && <p>No projects found.</p>}
 
       {projects.map((project) => (
         <div key={project._id}>
-          <h2>{project.name}</h2>
+          <h3>{project.name}</h3>
           <p>{project.description}</p>
           <Link to={`/projects/${project._id}`}>View Project</Link>
         </div>
