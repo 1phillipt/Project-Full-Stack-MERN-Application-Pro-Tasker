@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 type Project = {
@@ -17,12 +17,20 @@ type Task = {
 
 const ProjectDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [creatingTask, setCreatingTask] = useState(false);
+  const [updatingProject, setUpdatingProject] = useState(false);
+  const [deletingProject, setDeletingProject] = useState(false);
+
+  const [projectForm, setProjectForm] = useState({
+    name: "",
+    description: "",
+  });
 
   const [taskForm, setTaskForm] = useState({
     title: "",
@@ -38,6 +46,10 @@ const ProjectDetails = () => {
         ]);
 
         setProject(projectRes.data);
+        setProjectForm({
+          name: projectRes.data.name,
+          description: projectRes.data.description,
+        });
         setTasks(tasksRes.data);
       } catch (err: any) {
         setError(err.response?.data?.message || "Failed to load project");
@@ -49,6 +61,15 @@ const ProjectDetails = () => {
     fetchProjectAndTasks();
   }, [id]);
 
+  const handleProjectChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setProjectForm({
+      ...projectForm,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   const handleTaskChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -56,6 +77,41 @@ const ProjectDetails = () => {
       ...taskForm,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleUpdateProject = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setUpdatingProject(true);
+
+    try {
+      const response = await api.put(`/api/projects/${id}`, projectForm);
+      setProject(response.data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to update project");
+    } finally {
+      setUpdatingProject(false);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this project?"
+    );
+
+    if (!confirmed) return;
+
+    setError("");
+    setDeletingProject(true);
+
+    try {
+      await api.delete(`/api/projects/${id}`);
+      navigate("/");
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to delete project");
+    } finally {
+      setDeletingProject(false);
+    }
   };
 
   const handleCreateTask = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -88,9 +144,7 @@ const ProjectDetails = () => {
       });
 
       setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task._id === taskId ? response.data : task
-        )
+        prevTasks.map((task) => (task._id === taskId ? response.data : task))
       );
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to update task status");
@@ -100,7 +154,6 @@ const ProjectDetails = () => {
   const handleDeleteTask = async (taskId: string) => {
     try {
       await api.delete(`/api/tasks/${taskId}`);
-
       setTasks((prevTasks) => prevTasks.filter((task) => task._id !== taskId));
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to delete task");
@@ -124,10 +177,43 @@ const ProjectDetails = () => {
     <div>
       <Link to="/">← Back to Dashboard</Link>
 
-      <h1>{project?.name}</h1>
-      <p>{project?.description}</p>
-
       {error && <p>{error}</p>}
+
+      <h1>Project Details</h1>
+
+      <form onSubmit={handleUpdateProject}>
+        <div>
+          <label>Project Name</label>
+          <input
+            type="text"
+            name="name"
+            value={projectForm.name}
+            onChange={handleProjectChange}
+            required
+          />
+        </div>
+
+        <div>
+          <label>Description</label>
+          <textarea
+            name="description"
+            value={projectForm.description}
+            onChange={handleProjectChange}
+          />
+        </div>
+
+        <button type="submit" disabled={updatingProject}>
+          {updatingProject ? "Saving..." : "Update Project"}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleDeleteProject}
+          disabled={deletingProject}
+        >
+          {deletingProject ? "Deleting..." : "Delete Project"}
+        </button>
+      </form>
 
       <h2>Create Task</h2>
 
@@ -183,7 +269,7 @@ const ProjectDetails = () => {
             </select>
 
             <div>
-              <button onClick={() => handleDeleteTask(task._id)}>
+              <button type="button" onClick={() => handleDeleteTask(task._id)}>
                 Delete Task
               </button>
             </div>
