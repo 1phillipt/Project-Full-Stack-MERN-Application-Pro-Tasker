@@ -31,7 +31,13 @@ const Register = () => {
       await register(formData.username, formData.email, formData.password);
       navigate("/");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Registration failed");
+      console.log("REGISTER ERROR:", err.response?.data || err.message);
+      setError(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          "Registration failed"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -51,6 +57,7 @@ const Register = () => {
             name="username"
             value={formData.username}
             onChange={handleChange}
+            autoComplete="username"
             required
           />
         </div>
@@ -62,6 +69,7 @@ const Register = () => {
             name="email"
             value={formData.email}
             onChange={handleChange}
+            autoComplete="email"
             required
           />
         </div>
@@ -73,6 +81,7 @@ const Register = () => {
             name="password"
             value={formData.password}
             onChange={handleChange}
+            autoComplete="new-password"
             required
           />
         </div>

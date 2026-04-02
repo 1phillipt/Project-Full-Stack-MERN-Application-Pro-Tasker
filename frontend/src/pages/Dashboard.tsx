@@ -10,7 +10,8 @@ type Project = {
 };
 
 const Dashboard = () => {
-const { user } = useAuth();
+  const { user } = useAuth();
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -25,8 +26,15 @@ const { user } = useAuth();
     const fetchProjects = async () => {
       try {
         const response = await api.get("/api/projects");
-        setProjects(response.data);
+        console.log("GET PROJECTS RESPONSE:", response.data);
+
+        const projectList = Array.isArray(response.data)
+          ? response.data
+          : response.data.projects || [];
+
+        setProjects(projectList);
       } catch (err: any) {
+        console.log("GET PROJECTS ERROR:", err.response?.data || err.message);
         setError(err.response?.data?.message || "Failed to load projects");
       } finally {
         setLoading(false);
@@ -52,10 +60,19 @@ const { user } = useAuth();
 
     try {
       const response = await api.post("/api/projects", formData);
-      setProjects((prevProjects) => [response.data, ...prevProjects]);
+      console.log("CREATE PROJECT RESPONSE:", response.data);
+
+      const createdProject = response.data.project || response.data;
+
+      setProjects((prevProjects) => [createdProject, ...prevProjects]);
       setFormData({ name: "", description: "" });
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to create project");
+      console.log("CREATE PROJECT ERROR:", err.response?.data || err.message);
+      setError(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          "Failed to create project"
+      );
     } finally {
       setCreating(false);
     }

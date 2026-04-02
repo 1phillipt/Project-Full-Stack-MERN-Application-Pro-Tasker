@@ -30,7 +30,13 @@ const Login = () => {
       await login(formData.email, formData.password);
       navigate("/");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed");
+      console.log("LOGIN ERROR:", err.response?.data || err.message);
+      setError(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          "Login failed"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -50,6 +56,7 @@ const Login = () => {
             name="email"
             value={formData.email}
             onChange={handleChange}
+            autoComplete="email"
             required
           />
         </div>
@@ -61,6 +68,7 @@ const Login = () => {
             name="password"
             value={formData.password}
             onChange={handleChange}
+            autoComplete="current-password"
             required
           />
         </div>

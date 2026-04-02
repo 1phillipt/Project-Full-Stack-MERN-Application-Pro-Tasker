@@ -8,7 +8,8 @@ import {
 import api from "../services/api";
 
 type User = {
-  id: string;
+  id?: string;
+  _id?: string;
   username: string;
   email: string;
 };
@@ -51,6 +52,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
+  const login = async (email: string, password: string) => {
+    const response = await api.post("/api/users/login", {
+      email,
+      password,
+    });
+
+    const data = response.data;
+    console.log("LOGIN RESPONSE:", data);
+
+    const authToken = data.token;
+    const authUser = data.user || {
+      id: data.id || data._id,
+      _id: data._id,
+      username: data.username,
+      email: data.email,
+    };
+
+    if (!authToken || !authUser?.email) {
+      throw new Error("Invalid login response from server");
+    }
+
+    setUser(authUser);
+    setToken(authToken);
+
+    localStorage.setItem("token", authToken);
+    localStorage.setItem("user", JSON.stringify(authUser));
+  };
+
   const register = async (username: string, email: string, password: string) => {
     const response = await api.post("/api/users/register", {
       username,
@@ -59,33 +88,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     });
 
     const data = response.data;
+    console.log("REGISTER RESPONSE:", data);
 
-    setUser(data.user);
-    setToken(data.token);
+    const authToken = data.token;
+    const authUser = data.user || {
+      id: data.id || data._id,
+      _id: data._id,
+      username: data.username,
+      email: data.email,
+    };
 
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-  };
+    if (!authToken || !authUser?.email) {
+      throw new Error("Invalid register response from server");
+    }
 
-  const login = async (email: string, password: string) => {
-    const response = await api.post("/api/users/login", {
-      email,
-      password,
-    });
+    setUser(authUser);
+    setToken(authToken);
 
-    const data = response.data;
-
-    setUser(data.user);
-    setToken(data.token);
-
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("token", authToken);
+    localStorage.setItem("user", JSON.stringify(authUser));
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
-
     localStorage.removeItem("token");
     localStorage.removeItem("user");
   };
