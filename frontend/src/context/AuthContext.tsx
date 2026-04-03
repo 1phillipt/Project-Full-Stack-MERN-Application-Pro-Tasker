@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     email: string,
     password: string,
   ) => {
-    const response = await api.post("/api/users/register", {
+    const response = await api.post("/users/register", {
       username,
       email,
       password,
