@@ -1,12 +1,8 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import {createContext,useContext,useEffect,useState,type ReactNode} from "react";
 import api from "../services/api";
 
+
+// Define the User type based on your backend response
 type User = {
   id?: string;
   _id?: string;
@@ -18,7 +14,11 @@ type AuthContextType = {
   user: User | null;
   token: string | null;
   loading: boolean;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (
+    username: string,
+    email: string,
+    password: string,
+  ) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 };
@@ -31,7 +31,9 @@ type AuthProviderProps = {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("token"),
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -80,7 +82,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.setItem("user", JSON.stringify(authUser));
   };
 
-  const register = async (username: string, email: string, password: string) => {
+  const register = async (
+    username: string,
+    email: string,
+    password: string,
+  ) => {
     const response = await api.post("/api/users/register", {
       username,
       email,
@@ -117,7 +123,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, register, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, token, loading, register, login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

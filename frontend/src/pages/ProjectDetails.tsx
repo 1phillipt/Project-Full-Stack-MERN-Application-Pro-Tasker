@@ -45,13 +45,25 @@ const ProjectDetails = () => {
           api.get(`/api/projects/${id}/tasks`),
         ]);
 
-        setProject(projectRes.data);
+        console.log("GET ONE PROJECT RESPONSE:", projectRes.data);
+        console.log("GET TASKS RESPONSE:", tasksRes.data);
+
+        const oneProject = projectRes.data.project || projectRes.data;
+        const taskList = Array.isArray(tasksRes.data)
+          ? tasksRes.data
+          : tasksRes.data.tasks || [];
+
+        setProject(oneProject);
         setProjectForm({
-          name: projectRes.data.name,
-          description: projectRes.data.description,
+          name: oneProject.name || "",
+          description: oneProject.description || "",
         });
-        setTasks(tasksRes.data);
+        setTasks(taskList);
       } catch (err: any) {
+        console.log(
+          "PROJECT DETAILS ERROR:",
+          err.response?.data || err.message,
+        );
         setError(err.response?.data?.message || "Failed to load project");
       } finally {
         setLoading(false);
@@ -62,7 +74,7 @@ const ProjectDetails = () => {
   }, [id]);
 
   const handleProjectChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setProjectForm({
       ...projectForm,
@@ -71,7 +83,7 @@ const ProjectDetails = () => {
   };
 
   const handleTaskChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setTaskForm({
       ...taskForm,
@@ -86,8 +98,16 @@ const ProjectDetails = () => {
 
     try {
       const response = await api.put(`/api/projects/${id}`, projectForm);
-      setProject(response.data);
+      console.log("UPDATE PROJECT RESPONSE:", response.data);
+
+      const updatedProject = response.data.project || response.data;
+      setProject(updatedProject);
+      setProjectForm({
+        name: updatedProject.name || "",
+        description: updatedProject.description || "",
+      });
     } catch (err: any) {
+      console.log("UPDATE PROJECT ERROR:", err.response?.data || err.message);
       setError(err.response?.data?.message || "Failed to update project");
     } finally {
       setUpdatingProject(false);
@@ -96,7 +116,7 @@ const ProjectDetails = () => {
 
   const handleDeleteProject = async () => {
     const confirmed = window.confirm(
-      "Are you sure you want to delete this project?"
+      "Are you sure you want to delete this project?",
     );
 
     if (!confirmed) return;
@@ -108,6 +128,7 @@ const ProjectDetails = () => {
       await api.delete(`/api/projects/${id}`);
       navigate("/");
     } catch (err: any) {
+      console.log("DELETE PROJECT ERROR:", err.response?.data || err.message);
       setError(err.response?.data?.message || "Failed to delete project");
     } finally {
       setDeletingProject(false);
@@ -125,9 +146,13 @@ const ProjectDetails = () => {
         status: "To Do",
       });
 
-      setTasks((prevTasks) => [response.data, ...prevTasks]);
+      console.log("CREATE TASK RESPONSE:", response.data);
+
+      const createdTask = response.data.task || response.data;
+      setTasks((prevTasks) => [createdTask, ...prevTasks]);
       setTaskForm({ title: "", description: "" });
     } catch (err: any) {
+      console.log("CREATE TASK ERROR:", err.response?.data || err.message);
       setError(err.response?.data?.message || "Failed to create task");
     } finally {
       setCreatingTask(false);
@@ -136,17 +161,22 @@ const ProjectDetails = () => {
 
   const handleStatusChange = async (
     taskId: string,
-    newStatus: "To Do" | "In Progress" | "Done"
+    newStatus: "To Do" | "In Progress" | "Done",
   ) => {
     try {
       const response = await api.put(`/api/tasks/${taskId}`, {
         status: newStatus,
       });
 
+      console.log("UPDATE TASK RESPONSE:", response.data);
+
+      const updatedTask = response.data.task || response.data;
+
       setTasks((prevTasks) =>
-        prevTasks.map((task) => (task._id === taskId ? response.data : task))
+        prevTasks.map((task) => (task._id === taskId ? updatedTask : task)),
       );
     } catch (err: any) {
+      console.log("UPDATE TASK ERROR:", err.response?.data || err.message);
       setError(err.response?.data?.message || "Failed to update task status");
     }
   };
@@ -156,6 +186,7 @@ const ProjectDetails = () => {
       await api.delete(`/api/tasks/${taskId}`);
       setTasks((prevTasks) => prevTasks.filter((task) => task._id !== taskId));
     } catch (err: any) {
+      console.log("DELETE TASK ERROR:", err.response?.data || err.message);
       setError(err.response?.data?.message || "Failed to delete task");
     }
   };
@@ -259,7 +290,7 @@ const ProjectDetails = () => {
               onChange={(e) =>
                 handleStatusChange(
                   task._id,
-                  e.target.value as "To Do" | "In Progress" | "Done"
+                  e.target.value as "To Do" | "In Progress" | "Done",
                 )
               }
             >

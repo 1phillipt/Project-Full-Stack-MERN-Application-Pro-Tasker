@@ -126,7 +126,7 @@ const Dashboard = () => {
         <div key={project._id}>
           <h3>{project.name}</h3>
           <p>{project.description}</p>
-          <Link to={`/projects/${project._id}`}>View Project</Link>
+          <Link to={`/projects/${project._id}`}>Open</Link>
         </div>
       ))}
     </div>

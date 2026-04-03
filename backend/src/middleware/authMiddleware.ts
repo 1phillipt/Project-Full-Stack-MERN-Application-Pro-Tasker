@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import User from "../models/User";
 
+
+//request interface with user property
 export interface AuthRequest extends Request {
   user?: {
     _id: string;
@@ -9,12 +11,8 @@ export interface AuthRequest extends Request {
     email: string;
   };
 }
-
-const authMiddleware = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+//middleware to protect routes
+const authMiddleware = async (req: AuthRequest,res: Response,next: NextFunction): Promise<void> => {
   let token: string | undefined;
 
   if (
