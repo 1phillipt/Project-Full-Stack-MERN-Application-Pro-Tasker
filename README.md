@@ -45,3 +45,23 @@ JWT authentication
 Create and view projects
 Add, update, and delete tasks
 Protected route
+
+Frontend
+
+Dependencies:
+
+axios
+react
+react-dom
+react-router-dom
+
+Backend
+
+Dependencies:
+
+bcrypt
+cors
+dotenv
+express
+jsonwebtoken
+mongoose
