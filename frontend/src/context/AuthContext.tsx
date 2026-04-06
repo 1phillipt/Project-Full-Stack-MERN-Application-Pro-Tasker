@@ -9,7 +9,7 @@ type User = {
   username: string;
   email: string;
 };
-
+// Define the shape of the AuthContext
 type AuthContextType = {
   user: User | null;
   token: string | null;
@@ -22,6 +22,8 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 };
+
+// Create the AuthContext with the defined shape
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

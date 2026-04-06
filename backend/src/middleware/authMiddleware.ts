@@ -4,6 +4,7 @@ import User from "../models/User";
 
 
 //request interface with user property
+// This interface extends the standard Express Request object to include an optional user property.
 export interface AuthRequest extends Request {
   user?: {
     _id: string;
@@ -12,6 +13,7 @@ export interface AuthRequest extends Request {
   };
 }
 //middleware to protect routes
+// This middleware function checks for a valid JWT token in the Authorization header of incoming requests.
 const authMiddleware = async (req: AuthRequest,res: Response,next: NextFunction): Promise<void> => {
   let token: string | undefined;
 
